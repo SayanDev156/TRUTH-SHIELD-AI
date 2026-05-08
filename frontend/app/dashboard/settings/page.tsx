@@ -55,14 +55,12 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>('profile');
   const session = typeof window !== 'undefined' ? getAuthSession() : null;
 
-  // ── Profile ──────────────────────────────────────────────
   const [fullName, setFullName] = useState(session?.user.full_name ?? '');
   const [locale, setLocale] = useState(session?.user.locale ?? 'en');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileError, setProfileError] = useState('');
 
-  // ── Security ─────────────────────────────────────────────
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -85,12 +83,10 @@ export default function SettingsPage() {
     return { label: 'Strong', color: 'bg-green-500', w: 'w-full' };
   })();
 
-  // ── Scan Preferences ─────────────────────────────────────
   const defaultPrefs = { defaultScanType: 'fake_news', defaultLanguage: 'en', autoSaveHistory: true, showExplanations: true, riskThreshold: '50' };
   const [prefs, setPrefs] = useState(defaultPrefs);
   const [prefSaved, setPrefSaved] = useState(false);
 
-  // ── Notifications ─────────────────────────────────────────
   const defaultNotif = { highRiskAlerts: true, scanComplete: true, weeklyDigest: false, adminAlerts: false };
   const [notif, setNotif] = useState(defaultNotif);
   const [notifSaved, setNotifSaved] = useState(false);
@@ -102,7 +98,6 @@ export default function SettingsPage() {
     if (n) setNotif(n);
   }, []);
 
-  // ── Handlers ─────────────────────────────────────────────
   async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault();
     setProfileSaving(true);
@@ -167,14 +162,12 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <GlassCard>
         <p className="text-xs uppercase tracking-[0.28em] text-white/45">Settings</p>
         <h2 className="mt-2 text-2xl font-semibold">Account &amp; Preferences</h2>
         <p className="mt-1 text-sm text-white/55">Manage your profile, security, scan defaults, and notifications.</p>
       </GlassCard>
 
-      {/* Tab bar */}
       <div className="flex flex-wrap gap-2">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
@@ -194,13 +187,11 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      {/* ── PROFILE ── */}
       {tab === 'profile' && (
         <GlassCard>
           <p className="text-xs uppercase tracking-[0.28em] text-white/45">Profile</p>
           <h3 className="mt-2 text-xl font-semibold">Personal information</h3>
 
-          {/* Avatar */}
           <div className="mt-5 flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-neon-blue to-neon-purple text-2xl font-bold text-slate-950">
               {(fullName || 'U').charAt(0).toUpperCase()}
@@ -246,7 +237,6 @@ export default function SettingsPage() {
         </GlassCard>
       )}
 
-      {/* ── SECURITY ── */}
       {tab === 'security' && (
         <div className="space-y-5">
           <GlassCard>
@@ -303,7 +293,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* ── SCAN PREFERENCES ── */}
       {tab === 'scan' && (
         <GlassCard>
           <p className="text-xs uppercase tracking-[0.28em] text-white/45">Scan Preferences</p>
@@ -358,7 +347,6 @@ export default function SettingsPage() {
         </GlassCard>
       )}
 
-      {/* ── NOTIFICATIONS ── */}
       {tab === 'notifications' && (
         <GlassCard>
           <p className="text-xs uppercase tracking-[0.28em] text-white/45">Notifications</p>
@@ -402,7 +390,6 @@ export default function SettingsPage() {
         </GlassCard>
       )}
 
-      {/* ── DANGER ZONE ── */}
       {tab === 'danger' && (
         <div className="space-y-5">
           <GlassCard>

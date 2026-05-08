@@ -102,7 +102,6 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header + actions */}
       <GlassCard>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -124,7 +123,6 @@ export default function ReportsPage() {
         </div>
       </GlassCard>
 
-      {/* Filter + select-all */}
       <div className="flex flex-wrap items-center gap-3">
         {['', 'fake_news', 'deepfake'].map((type) => (
           <button
@@ -144,7 +142,6 @@ export default function ReportsPage() {
         )}
       </div>
 
-      {/* Scan list */}
       {loading && <GlassCard>Loading scans…</GlassCard>}
       {!loading && !filtered.length && <GlassCard>No scans found.</GlassCard>}
       <div className="grid gap-3">
@@ -185,7 +182,6 @@ export default function ReportsPage() {
         })}
       </div>
 
-      {/* Included sections info */}
       <GlassCard>
         <p className="text-xs uppercase tracking-[0.28em] text-white/45">Included in report</p>
         <ul className="mt-4 space-y-2 text-sm text-white/65">

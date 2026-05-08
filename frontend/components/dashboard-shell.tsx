@@ -78,7 +78,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          {/* User info + logout at bottom of sidebar */}
           {session && (
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center gap-3">

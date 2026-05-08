@@ -93,7 +93,6 @@ class FakeNewsDetector:
         combined_text = f"{title} {text}"
         combined_text_lower = combined_text.lower()
         
-        # Try BERT model first
         bert_risk = None
         try:
             from app.services.models import analyze_text_with_bert
@@ -104,14 +103,11 @@ class FakeNewsDetector:
         except Exception as e:
             logger.warning(f"BERT model not available: {e}, using heuristic")
         
-        # If BERT succeeded, weight it heavily; otherwise use heuristics
         if bert_risk is not None and isinstance(bert_risk, (int, float)) and 0.0 <= bert_risk <= 1.0:
-            # Combine BERT result with credibility check
             url_score = _source_credibility(source_url)
-            credibility_adjustment = max(0.0, 0.4 - url_score) * 0.2  # Adjust based on source
+            credibility_adjustment = max(0.0, 0.4 - url_score) * 0.2
             risk_score = min(0.95, max(0.05, bert_risk + credibility_adjustment))
         else:
-            # Fallback to heuristic analysis
             tokens = re.findall(r"[a-zA-Z']+", combined_text_lower)
             word_count = max(len(tokens), 1)
             capital_ratio = sum(1 for token in tokens if token.isupper()) / word_count
@@ -175,7 +171,6 @@ class DeepfakeDetector:
         """
         extension = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
         
-        # Try ML-based analysis if file content is available
         frame_scores = None
         regions = None
         audio_insights = None
@@ -196,7 +191,6 @@ class DeepfakeDetector:
                     except Exception as ve:
                         logger.warning(f"Video analysis failed, trying image analysis: {ve}")
                         from app.services.models import analyze_image_with_cnn
-                        # Fallback: analyze as image
                         try:
                             model_risk_score, frame_scores = analyze_image_with_cnn(file_content, filename)
                         except:
@@ -210,11 +204,9 @@ class DeepfakeDetector:
             except Exception as e:
                 logger.warning(f"ML model analysis failed: {e}, using heuristic fallback")
         
-        # If ML analysis succeeded, use it; otherwise use heuristics
         if model_risk_score is not None:
             risk_score = model_risk_score
         else:
-            # Fallback heuristic analysis
             base_risk = 0.22
             if mime_type.startswith("image/"):
                 base_risk = 0.28
@@ -233,20 +225,10 @@ class DeepfakeDetector:
             manipulation_penalty = 0.18 if extension in {"mp4", "wav", "mp3"} else 0.1
             risk_score = min(base_risk + size_penalty + format_penalty + manipulation_penalty, 0.97)
         
-        # Confidence calibration:
-        # - Avoid always-high confidence when only heuristics are available.
-        # - Map risk_score -> confidence using a gentle, monotonic curve.
-        #   This ensures confidence moves meaningfully with risk.
-        # - Keep a sane lower bound, but do not force ~0.8.
         confidence = round(max(0.35, min(0.98, 0.15 + ((1.0 - risk_score) ** 0.9) * 0.85)), 3)
-        # Decision threshold: risk_score computed as deviation from normal.
-        # Low deviation (high score) = authentic. High deviation (low score) = likely fake.
         label = "Real" if risk_score >= 0.62 else "Fake"
 
         
-        # Set defaults if not from ML analysis.
-        # Keep per-field scores correlated with the inverted risk_score.
-        # Since high risk_score = authentic, we invert for "suspicion" display.
         inverted_risk = 1.0 - risk_score
         if not frame_scores:
             frame_scores = [round(max(0.0, min(0.999, inverted_risk + offset)), 3) for offset in (-0.12, -0.04, 0.0, 0.04, 0.09)]

@@ -14,7 +14,6 @@ print("╔" + "═" * 68 + "╗")
 print("║" + " " * 15 + "🎯 TRUTHSHIELD FINAL VERIFICATION TEST" + " " * 14 + "║")
 print("╚" + "═" * 68 + "╝")
 
-# Login
 print("\n[1/5] Authenticating...")
 token_resp = requests.post(
     f"{BASE_URL}/api/auth/login",
@@ -24,7 +23,6 @@ token = token_resp.json()["access_token"]
 headers = {"Authorization": f"Bearer {token}"}
 print("✅ Authentication successful")
 
-# Test 1: Fake News - Suspicious
 print("\n[2/5] Testing Fake-News Detection (Suspicious Content)...")
 payload = {
     "title": "BREAKING: Celebrity SHOCKED by UNBELIEVABLE Discovery!!!",
@@ -39,7 +37,6 @@ print(f"  Risk Score: {result['risk_score']} (0-1, higher = more fake)")
 print(f"  Confidence: {result['confidence']}")
 print(f"  Signals: {len(result['explanation'])} detected")
 
-# Test 2: Fake News - Credible
 print("\n[3/5] Testing Fake-News Detection (Credible Source)...")
 payload = {
     "title": "Reuters Reports on Economic Data",
@@ -53,7 +50,6 @@ print(f"  Label: {result['label']}")
 print(f"  Risk Score: {result['risk_score']} (lower = more credible)")
 print(f"  Confidence: {result['confidence']}")
 
-# Test 3: Deepfake - Image Analysis
 print("\n[4/5] Testing Deepfake Detection (Image Analysis)...")
 img = Image.new("RGB", (100, 100), color="red")
 img_byte_arr = io.BytesIO()
@@ -66,7 +62,6 @@ print(f"  Label: {result['label']}")
 print(f"  Risk Score: {result['risk_score']}")
 print(f"  Summary: {result['summary'][:50]}...")
 
-# Test 4: History
 print("\n[5/5] Verifying Scan History...")
 resp = requests.get(f"{BASE_URL}/api/history", headers=headers)
 history = resp.json()

@@ -12,7 +12,6 @@ from PIL import Image
 
 logger = logging.getLogger(__name__)
 
-# Global model cache
 _models_cache = {}
 
 
@@ -119,7 +118,6 @@ def analyze_image_with_cnn(image_data: bytes, filename: str) -> Tuple[float, lis
         img = img.convert("RGB").resize((224, 224))
         img_array = np.array(img, dtype=np.float32) / 255.0
 
-        # Calibrated heuristics until real deepfake weights are added.
         entropy = _entropy_from_array(img_array)
         gray = np.mean(img_array, axis=2)
         detail = float(np.mean(np.abs(np.diff(gray, axis=0))) + np.mean(np.abs(np.diff(gray, axis=1))))

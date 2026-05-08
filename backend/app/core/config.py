@@ -15,8 +15,6 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./truthshield.db"
     secret_key: str = "change-me-in-production"
     access_token_expire_minutes: int = 120
-    # Allow common local dev ports used by the frontend (3000, 3001, 3002)
-    # and loopback variants so CORS does not block local development.
     cors_origins: str = "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002"
     mongodb_uri: str = ""
     mongodb_database: str = "truthshield"

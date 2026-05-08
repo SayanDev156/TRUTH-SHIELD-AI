@@ -33,7 +33,6 @@ def analyze_scan(payload: schemas.ScanRequest, current_user: dict | None = Depen
 
         logger.info(f"Final result: label={result.label}, risk={result.risk_score}, conf={result.confidence}")
         
-        # Convert to dict to ensure all fields are properly set
         result_dict = result.model_dump() if hasattr(result, 'model_dump') else result.as_dict()
         logger.info(f"Result dict: {result_dict}")
 

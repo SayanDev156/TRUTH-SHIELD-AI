@@ -14,7 +14,6 @@ def list_history(
     current_user: dict | None = Depends(optional_current_user),
     repository: TruthShieldStore = Depends(get_store),
 ):
-    # Admins see all scans; regular users only see their own
     if current_user and current_user.get("is_admin"):
         user_email = None
     else:

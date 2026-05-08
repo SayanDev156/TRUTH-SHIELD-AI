@@ -64,7 +64,6 @@ export default function LoginPage() {
           Sign in to access scan history, detector outputs, and analytics dashboard.
         </p>
 
-        {/* Role selector */}
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             type="button"
@@ -141,7 +140,6 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Demo credentials info */}
         <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="text-xs uppercase tracking-wider text-white/45">Demo Credentials</p>
           <div className="mt-3 space-y-2 text-xs text-white/65">

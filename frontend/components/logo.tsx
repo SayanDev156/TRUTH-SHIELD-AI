@@ -8,19 +8,14 @@ export function TruthShieldLogo({ size = 44 }: { size?: number }) {
       className="ts-logo-root relative shrink-0 flex items-center justify-center rounded-2xl overflow-hidden"
       data-size={size}
     >
-      {/* rotating conic gradient border */}
       <div className="ts-logo-wrap ts-spin absolute inset-0 rounded-2xl" />
 
-      {/* dark inset */}
       <div className="ts-logo-inset absolute rounded-2xl" />
 
-      {/* pulsing glow ring */}
       <div className="ts-logo-glow-ring ts-glow absolute inset-0 rounded-2xl" />
 
-      {/* shimmer sweep */}
       <div className="ts-logo-shimmer-bg ts-shimmer absolute inset-0 rounded-2xl pointer-events-none" />
 
-      {/* SVG mark */}
       <svg
         width={svgSize}
         height={svgSize}

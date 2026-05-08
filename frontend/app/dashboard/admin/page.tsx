@@ -54,7 +54,6 @@ export default function AdminPage() {
         </GlassCard>
       )}
 
-      {/* Metric cards */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Users" value={stats ? String(stats.total_users) : '—'} hint="Registered accounts" />
         <MetricCard label="Scans" value={stats ? String(stats.total_scans) : '—'} hint="All detector runs" />
@@ -62,7 +61,6 @@ export default function AdminPage() {
         <MetricCard label="Deepfake" value={stats ? String(stats.deepfake_scans) : '—'} hint="Media scans" />
       </div>
 
-      {/* Tab switcher */}
       <div className="flex gap-3">
         <button
           onClick={() => setTab('stats')}

@@ -88,7 +88,6 @@ def test_deepfake_image(token):
     """Test deepfake image analyzer"""
     log("Testing deepfake image analyzer...")
     try:
-        # Create a minimal PNG file (just header)
         png_header = b'\x89PNG\r\n\x1a\n'
         headers = {"Authorization": f"Bearer {token}"}
         files = {"file": ("test.png", png_header, "image/png")}
@@ -165,13 +164,11 @@ def main():
     
     results = []
     
-    # Health check
     if not test_health():
         log("Backend not responding. Please start the server.", "ERROR")
         sys.exit(1)
     results.append(("Health", True))
     
-    # Auth
     token = test_auth()
     results.append(("Auth/Login", token is not None))
     
@@ -179,13 +176,11 @@ def main():
         log("Cannot proceed without auth token.", "ERROR")
         sys.exit(1)
     
-    # Tests requiring token
     results.append(("Fake-News Analyzer", test_fake_news(token)))
     results.append(("Deepfake Image", test_deepfake_image(token)))
     results.append(("History", test_history(token)))
     results.append(("Admin Stats", test_admin_stats(token)))
     
-    # Summary
     log("="*60)
     log("TEST SUMMARY")
     log("="*60)

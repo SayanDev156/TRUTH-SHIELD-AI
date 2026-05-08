@@ -12,7 +12,6 @@ print("=" * 70)
 print("TRUTHSHIELD E2E TEST SUITE - FINAL VERIFICATION")
 print("=" * 70)
 
-# Test 1: Health
 print("\n[Test 1] Health Endpoint")
 try:
     resp = requests.get(f"{BASE_URL}/health")
@@ -26,7 +25,6 @@ except Exception as e:
     print(f"FAIL - {str(e)}")
     results.append(False)
 
-# Test 2: Auth
 print("\n[Test 2] Authentication")
 try:
     token_resp = requests.post(
@@ -46,7 +44,6 @@ except Exception as e:
 
 headers = {"Authorization": f"Bearer {token}"}
 
-# Test 3: Fake-News
 print("\n[Test 3] Fake-News Analyzer")
 try:
     payload = {
@@ -69,7 +66,6 @@ except Exception as e:
     print(f"FAIL - {str(e)}")
     results.append(False)
 
-# Test 4: Deepfake Image
 print("\n[Test 4] Deepfake Image Analyzer")
 try:
     img = Image.new("RGB", (100, 100), color="red")
@@ -91,7 +87,6 @@ except Exception as e:
     print(f"FAIL - {str(e)}")
     results.append(False)
 
-# Test 5: History
 print("\n[Test 5] History Endpoint")
 try:
     resp = requests.get(f"{BASE_URL}/api/history", headers=headers)
@@ -106,7 +101,6 @@ except Exception as e:
     print(f"FAIL - {str(e)}")
     results.append(False)
 
-# Test 6: Admin Stats
 print("\n[Test 6] Admin Stats")
 try:
     resp = requests.get(f"{BASE_URL}/api/admin/stats", headers=headers)

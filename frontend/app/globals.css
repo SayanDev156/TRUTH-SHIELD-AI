@@ -10,8 +10,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* ─── Keyframes ──────────────────────────────────────────────────────────── */
-
 @keyframes orb-drift-1 {
   0%   { transform: translate(0px,   0px)   scale(1);    opacity: 0.55; }
   33%  { transform: translate(60px, -80px)  scale(1.12); opacity: 0.7;  }
@@ -65,8 +63,6 @@ html {
   100% { transform: translate(0, 0);     }
 }
 
-/* ─── Base body ──────────────────────────────────────────────────────────── */
-
 body {
   margin: 0;
   min-height: 100vh;
@@ -76,8 +72,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ─── Animated background layer (fixed, behind everything) ──────────────── */
-
 body::before {
   content: '';
   position: fixed;
@@ -85,7 +79,7 @@ body::before {
   z-index: 0;
   pointer-events: none;
 
-  /* aurora gradient */
+
   background:
     radial-gradient(ellipse 80% 60% at 15% 10%,  rgba(154,106,255,0.22) 0%, transparent 55%),
     radial-gradient(ellipse 70% 55% at 85% 90%,  rgba(58,190,255,0.18)  0%, transparent 55%),
@@ -96,8 +90,6 @@ body::before {
   background-size: 300% 300%;
   animation: aurora-shift 18s ease-in-out infinite;
 }
-
-/* ─── Floating orb 1 — purple top-left ──────────────────────────────────── */
 
 body::after {
   content: '';
@@ -114,8 +106,6 @@ body::after {
   animation: orb-drift-1 22s ease-in-out infinite;
 }
 
-/* ─── Dot grid ───────────────────────────────────────────────────────────── */
-
 #ts-bg-grid {
   position: fixed;
   inset: 0;
@@ -125,8 +115,6 @@ body::after {
   background-size: 24px 24px;
   animation: grid-pulse 6s ease-in-out infinite;
 }
-
-/* ─── Floating orb 2 — blue bottom-right ────────────────────────────────── */
 
 #ts-bg-orb2 {
   position: fixed;
@@ -142,8 +130,6 @@ body::after {
   animation: orb-drift-2 26s ease-in-out infinite;
 }
 
-/* ─── Floating orb 3 — teal center ──────────────────────────────────────── */
-
 #ts-bg-orb3 {
   position: fixed;
   z-index: 0;
@@ -158,8 +144,6 @@ body::after {
   filter: blur(60px);
   animation: orb-drift-3 30s ease-in-out infinite;
 }
-
-/* ─── Horizontal scan line ───────────────────────────────────────────────── */
 
 #ts-bg-scan {
   position: fixed;
@@ -179,8 +163,6 @@ body::after {
   box-shadow: 0 0 12px 2px rgba(58,190,255,0.3);
   animation: scan-line 9s linear infinite;
 }
-
-/* ─── Logo component classes (replaces inline styles) ───────────────────── */
 
 @keyframes ts-spin {
   from { transform: rotate(0deg); }
@@ -265,8 +247,6 @@ body::after {
 .ts-particle:nth-child(10) { width:2px; height:2px; top:35%;  left:55%; animation: particle-float 7.8s ease-in-out 2.5s infinite; background:rgba(51,214,199,0.7); }
 .ts-particle:nth-child(11) { width:3px; height:3px; top:8%;   left:48%; animation: particle-float 5.0s ease-in-out 1.3s infinite; }
 .ts-particle:nth-child(12) { width:2px; height:2px; top:95%;  left:62%; animation: particle-float 6.2s ease-in-out 0.9s infinite; background:rgba(255,94,168,0.6); }
-
-/* ─── Ensure all page content sits above the background ─────────────────── */
 
 body > * {
   position: relative;

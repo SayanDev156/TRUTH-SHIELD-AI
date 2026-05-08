@@ -7,7 +7,6 @@ const pixels = new Uint8Array(W * H * 4);
 function setPixel(x, y, r, g, b, a) {
   if (x < 0 || x >= W || y < 0 || y >= H) return;
   const i = (y * W + x) * 4;
-  // alpha blend over existing
   const sa = a / 255, da = pixels[i + 3] / 255;
   const oa = sa + da * (1 - sa);
   if (oa === 0) return;
@@ -19,16 +18,14 @@ function setPixel(x, y, r, g, b, a) {
 
 function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
 
-// ── gradient background with rounded corners ──────────────────────────────
 const radius = 7;
 for (let y = 0; y < H; y++) {
   for (let x = 0; x < W; x++) {
     const t = (x + y) / (W + H);
-    const r = lerp(0x3A, 0xFF, t * 0.5);  // #3ABEFF → #FF5EA8
+    const r = lerp(0x3A, 0xFF, t * 0.5);
     const g = lerp(0xBE, 0x5E, t * 0.5);
     const b = lerp(0xFF, 0xA8, t * 0.5);
 
-    // rounded corner mask
     const dx = Math.max(radius - x, 0, x - (W - 1 - radius));
     const dy = Math.max(radius - y, 0, y - (H - 1 - radius));
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -39,7 +36,6 @@ for (let y = 0; y < H; y++) {
   }
 }
 
-// ── dark overlay ──────────────────────────────────────────────────────────
 for (let y = 0; y < H; y++) {
   for (let x = 0; x < W; x++) {
     const i = (y * W + x) * 4;
@@ -47,7 +43,6 @@ for (let y = 0; y < H; y++) {
   }
 }
 
-// ── draw helpers ──────────────────────────────────────────────────────────
 function drawLine(x0, y0, x1, y1, r, g, b, a, thick = 1) {
   const dx = x1 - x0, dy = y1 - y0;
   const steps = Math.max(Math.abs(dx), Math.abs(dy)) * 4;
@@ -85,8 +80,6 @@ function fillCircle(cx, cy, radius, r, g, b, a) {
   }
 }
 
-// ── shield ────────────────────────────────────────────────────────────────
-// draw shield outline as line segments
 const shield = [
   [16,4],[7,7.8],[7,13],[8,16],[10,19],[13,22],[16,24],
   [19,22],[22,19],[24,16],[25,13],[25,7.8],[16,4]
@@ -95,20 +88,15 @@ for (let i = 0; i < shield.length - 1; i++) {
   drawLine(shield[i][0], shield[i][1], shield[i+1][0], shield[i+1][1], 255, 255, 255, 220, 0);
 }
 
-// ── AI eye ellipse ────────────────────────────────────────────────────────
 drawEllipse(16, 15, 5, 3.2, 255, 255, 255, 240);
 
-// ── iris ──────────────────────────────────────────────────────────────────
 fillCircle(16, 15, 2, 255, 255, 255, 255);
 
-// ── scan lines ────────────────────────────────────────────────────────────
 drawLine(9, 15, 11, 15, 58, 190, 255, 230, 0);
 drawLine(21, 15, 23, 15, 58, 190, 255, 230, 0);
 
-// ── top tick ──────────────────────────────────────────────────────────────
 drawLine(16, 9, 16, 11, 255, 255, 255, 160, 0);
 
-// ── encode PNG ────────────────────────────────────────────────────────────
 function encodePNG(width, height, pixels) {
   function crc32(buf) {
     let crc = 0xFFFFFFFF;
@@ -130,15 +118,13 @@ function encodePNG(width, height, pixels) {
     return Buffer.concat([len, typeBytes, data, crcVal]);
   }
 
-  // IHDR
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0); ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8; ihdr[9] = 6; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
 
-  // raw image data with filter bytes
   const raw = Buffer.alloc(height * (1 + width * 4));
   for (let y = 0; y < height; y++) {
-    raw[y * (1 + width * 4)] = 0; // filter type None
+    raw[y * (1 + width * 4)] = 0;
     for (let x = 0; x < width; x++) {
       const src = (y * width + x) * 4;
       const dst = y * (1 + width * 4) + 1 + x * 4;
@@ -157,6 +143,5 @@ function encodePNG(width, height, pixels) {
 
 const png = encodePNG(W, H, pixels);
 fs.writeFileSync('public/favicon.png', png);
-// Also write as favicon.ico (browsers accept PNG inside .ico)
 fs.writeFileSync('public/favicon.ico', png);
 console.log('✓ favicon.png and favicon.ico written to public/');

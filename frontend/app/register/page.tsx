@@ -69,7 +69,6 @@ export default function RegisterPage() {
           Start detecting fake news and deepfakes with AI-powered analysis.
         </p>
 
-        {/* Role selector */}
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             type="button"

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { X } from 'lucide-react';
 import { analyzeDeepfake, analyzeFakeNews } from '@/lib/api';
 import { ScanResult } from '@/lib/types';
@@ -106,15 +107,12 @@ export function DeepfakeScanForm() {
   const [error, setError] = useState('');
   const [fileSizeWarning, setFileSizeWarning] = useState('');
 
-  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
-  const WARNING_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+  const MAX_FILE_SIZE = 100 * 1024 * 1024;
+  const WARNING_FILE_SIZE = 50 * 1024 * 1024;
 
   useEffect(() => {
     if (!file) {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(null);
-      }
+      setPreviewUrl(null);
       return;
     }
     const url = URL.createObjectURL(file);
@@ -122,7 +120,6 @@ export function DeepfakeScanForm() {
     return () => {
       URL.revokeObjectURL(url);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   function handleClearPreview() {
@@ -199,7 +196,6 @@ export function DeepfakeScanForm() {
                   return;
                 }
 
-                // Check file size
                 if (selected.size > MAX_FILE_SIZE) {
                   setError(`File size exceeds 100MB limit. File: ${(selected.size / (1024 * 1024)).toFixed(1)}MB`);
                   setFile(null);
@@ -207,7 +203,6 @@ export function DeepfakeScanForm() {
                   return;
                 }
 
-                // Warn if file is large
                 if (selected.size > WARNING_FILE_SIZE) {
                   setFileSizeWarning(`Large file (${(selected.size / (1024 * 1024)).toFixed(1)}MB) - scan may take longer.`);
                 } else {
@@ -222,7 +217,6 @@ export function DeepfakeScanForm() {
             <span className="mt-2 text-xs tracking-[0.2em] uppercase">PNG, JPG, MP4, WEBM, WAV, MP3</span>
             {file ? <span className="mt-4 rounded-full border border-neon-blue/30 bg-neon-blue/10 px-3 py-1 text-xs text-neon-blue">{file.name}</span> : null}
           </label>
-          {/* Preview area */}
           {previewUrl && (
             <div className="mt-4 space-y-2">
               <div className="flex items-center justify-between">
@@ -236,7 +230,7 @@ export function DeepfakeScanForm() {
                   Clear
                 </button>
               </div>
-              {kind === 'image' && <img src={previewUrl} alt="preview" className="mx-auto max-h-60 w-auto rounded-2xl object-contain" />} {/* eslint-disable-line @next/next/no-img-element */}
+              {kind === 'image' && <Image src={previewUrl} alt="preview" width={600} height={400} unoptimized className="mx-auto max-h-60 w-auto rounded-2xl object-contain" />}
               {kind === 'video' && (
                 <video src={previewUrl} autoPlay muted controls className="mx-auto max-h-60 w-full rounded-2xl object-contain" />
               )}

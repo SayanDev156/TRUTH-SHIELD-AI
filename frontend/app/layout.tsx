@@ -19,7 +19,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${manrope.variable}`}>
       <body>
-        {/* ── Animated background elements ── */}
         <div id="ts-bg-grid" aria-hidden="true" />
         <div id="ts-bg-orb2" aria-hidden="true" />
         <div id="ts-bg-orb3" aria-hidden="true" />

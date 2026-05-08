@@ -11,41 +11,23 @@
       <stop offset="100%" stop-color="#3ABEFF" stop-opacity="0"/>
     </linearGradient>
   </defs>
-
-  <!-- rounded square background -->
-  <rect width="32" height="32" rx="8" fill="url(#bg)"/>
-
-  <!-- inner dark overlay -->
-  <rect width="32" height="32" rx="8" fill="rgba(5,8,22,0.38)"/>
-
-  <!-- inner glow -->
-  <rect width="32" height="32" rx="8" fill="url(#bg)" opacity="0.12"/>
-
-  <!-- shield -->
-  <path
+<rect width="32" height="32" rx="8" fill="url(#bg)"/>
+<rect width="32" height="32" rx="8" fill="rgba(5,8,22,0.38)"/>
+<rect width="32" height="32" rx="8" fill="url(#bg)" opacity="0.12"/>
+<path
     d="M16 4L7 7.8V13C7 18.08 11.04 22.8 16 24C20.96 22.8 25 18.08 25 13V7.8L16 4Z"
     fill="rgba(0,0,0,0.3)"
     stroke="rgba(255,255,255,0.9)"
     stroke-width="1.4"
     stroke-linejoin="round"
   />
-
-  <!-- AI eye ellipse -->
-  <ellipse cx="16" cy="15" rx="5" ry="3.2"
+<ellipse cx="16" cy="15" rx="5" ry="3.2"
     stroke="rgba(255,255,255,0.95)" stroke-width="1.3"/>
-
-  <!-- iris -->
-  <circle cx="16" cy="15" r="1.8" fill="white"/>
-
-  <!-- scan line left -->
-  <line x1="9"  y1="15" x2="11" y2="15"
+<circle cx="16" cy="15" r="1.8" fill="white"/>
+<line x1="9"  y1="15" x2="11" y2="15"
     stroke="#3ABEFF" stroke-width="1.3" stroke-linecap="round"/>
-
-  <!-- scan line right -->
-  <line x1="21" y1="15" x2="23" y2="15"
+<line x1="21" y1="15" x2="23" y2="15"
     stroke="#3ABEFF" stroke-width="1.3" stroke-linecap="round"/>
-
-  <!-- top tick -->
-  <line x1="16" y1="9" x2="16" y2="10.5"
+<line x1="16" y1="9" x2="16" y2="10.5"
     stroke="rgba(255,255,255,0.6)" stroke-width="1.2" stroke-linecap="round"/>
 </svg>
