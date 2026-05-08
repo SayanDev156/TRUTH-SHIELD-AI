@@ -8,9 +8,10 @@
 
 ## Frontend
 
-1. Set `NEXT_PUBLIC_API_URL` to your backend URL.
-2. Install dependencies with `npm install`.
-3. Run `npm run build` and deploy the `.next` output to your host.
+1. Set `BACKEND_URL` to your backend URL for the Vercel rewrite proxy.
+2. `NEXT_PUBLIC_API_URL` is still supported for compatibility, but `BACKEND_URL` is preferred.
+3. Install dependencies with `npm install`.
+4. Run `npm run build` and deploy the `.next` output to your host.
 
 ## Production Notes
 

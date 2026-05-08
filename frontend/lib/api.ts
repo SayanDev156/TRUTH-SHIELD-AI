@@ -1,11 +1,9 @@
 import { AuthSession, HistoryItem, ScanResult } from './types';
 import { getAuthToken } from './auth';
 
-const baseUrl = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) ? process.env.NEXT_PUBLIC_API_URL : 'http://localhost:8000';
-
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = typeof window !== 'undefined' ? getAuthToken() : null;
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetch(path, {
     ...init,
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
