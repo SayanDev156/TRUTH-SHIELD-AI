@@ -1,0 +1,4 @@
+scan_type,input_type,title,risk_score,label,summary
+fake_news,text,"BREAKING: miracle cure discovered",0.91,Fake,"Clickbait-heavy article with weak source credibility"
+deepfake,video,"candidate_speech.mp4",0.77,Fake,"Frame coherence and region anomalies indicate manipulation"
+fake_news,text,"Verified report from Reuters",0.14,Real,"Trusted source and low sensational language"
