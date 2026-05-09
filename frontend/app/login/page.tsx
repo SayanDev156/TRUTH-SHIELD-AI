@@ -10,6 +10,7 @@ import { User, Crown } from 'lucide-react';
 import { TruthShieldLogo } from '@/components/logo';
 
 export default function LoginPage() {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003';
 
 
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = '/api/auth/google/login';
+    window.location.href = `${apiBaseUrl}/api/auth/google/login`;
   };
 
   return (

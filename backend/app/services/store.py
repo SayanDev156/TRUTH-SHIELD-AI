@@ -171,40 +171,43 @@ class TruthShieldStore:
             self._memory["users"].append(user_doc)
         return self._serialize(user_doc)
 
-    def get_or_create_oauth_user(self, *, email: str, full_name: str, provider: str, provider_id: str, locale: str = "en") -> Dict[str, Any]:
+    def get_or_create_oauth_user(self, email: str, full_name: str, provider: str, provider_id: str, locale: str = "en") -> Dict[str, Any]:
         normalized_email = email.lower()
-        existing = self.get_user_by_email(normalized_email)
-        oauth_fields = {
-            "oauth_provider": provider,
-            "oauth_provider_id": provider_id,
-        }
-        if existing:
+        existing_user = self.get_user_by_email(normalized_email)
+        if existing_user:
+            updates = {
+                "full_name": full_name or existing_user["full_name"],
+                "locale": locale or existing_user.get("locale", "en"),
+                "provider": provider,
+                "provider_id": provider_id,
+            }
             if self.mongo_available and self._db is not None:
-                self._db.users.update_one({"email": normalized_email}, {"$set": oauth_fields})
-                user = self._db.users.find_one({"email": normalized_email}, {"_id": 0})
-                return self._serialize(user)
+                self._db.users.update_one({"email": normalized_email}, {"$set": updates})
+                refreshed = self._db.users.find_one({"email": normalized_email}, {"_id": 0})
+                return self._serialize(refreshed)
+
             for user in self._memory["users"]:
                 if user["email"] == normalized_email:
-                    user.update(oauth_fields)
+                    user.update(updates)
                     return self._serialize(user)
-            return existing
 
-        user_doc = {
+        oauth_user = {
             "id": f"user_{uuid4().hex}",
             "full_name": full_name,
             "email": normalized_email,
-            "hashed_password": "",
+            "hashed_password": hash_password(uuid4().hex),
             "is_admin": False,
             "locale": locale,
+            "provider": provider,
+            "provider_id": provider_id,
             "created_at": self._now(),
-            **oauth_fields,
         }
 
         if self.mongo_available and self._db is not None:
-            self._db.users.insert_one(user_doc)
+            self._db.users.update_one({"email": normalized_email}, {"$set": oauth_user}, upsert=True)
         else:
-            self._memory["users"].append(user_doc)
-        return self._serialize(user_doc)
+            self._memory["users"].append(oauth_user)
+        return self._serialize(oauth_user)
 
     def verify_login(self, email: str, password: str) -> Optional[Dict[str, Any]]:
         user = self.get_user_by_email(email)
@@ -358,11 +361,8 @@ class TruthShieldStore:
         }
 
 
-_store: TruthShieldStore | None = None
+store = TruthShieldStore()
 
 
 def get_truthshield_store() -> TruthShieldStore:
-    global _store
-    if _store is None:
-        _store = TruthShieldStore()
-    return _store
+    return store

@@ -11,7 +11,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from app.core.config import get_settings
-from app.services.store import get_truthshield_store
+from app.services.store import store
 from app.routers import admin, auth, deepfake, fakenews, history
 
 logger = logging.getLogger("uvicorn.error")
@@ -21,10 +21,18 @@ limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    store.seed()
     yield
 
 
 app = FastAPI(title=settings.app_name, version="1.0.0", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def log_deepfake_preflight_origin(request: Request, call_next):
+    if request.method == "OPTIONS" and request.url.path.startswith("/api/deepfake"):
+        logger.info(f"Deepfake preflight origin header: {request.headers.get('origin')!r}")
+    return await call_next(request)
 
 
 @app.exception_handler(Exception)
@@ -75,5 +83,4 @@ def root():
 
 @app.get("/health")
 def healthcheck():
-    store = get_truthshield_store()
     return {"status": "ok", "timestamp": datetime.utcnow().isoformat(), "mongo_available": store.mongo_available}

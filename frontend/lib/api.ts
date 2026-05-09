@@ -1,9 +1,11 @@
 import { AuthSession, HistoryItem, ScanResult } from './types';
 import { getAuthToken } from './auth';
 
+const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003';
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = typeof window !== 'undefined' ? getAuthToken() : null;
-  const response = await fetch(path, {
+  const response = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

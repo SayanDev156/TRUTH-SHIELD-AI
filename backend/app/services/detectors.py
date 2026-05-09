@@ -93,6 +93,7 @@ class FakeNewsDetector:
         combined_text = f"{title} {text}"
         combined_text_lower = combined_text.lower()
         
+        # Try BERT model first
         bert_risk = None
         try:
             from app.services.models import analyze_text_with_bert
@@ -103,11 +104,14 @@ class FakeNewsDetector:
         except Exception as e:
             logger.warning(f"BERT model not available: {e}, using heuristic")
         
+        # If BERT succeeded, weight it heavily; otherwise use heuristics
         if bert_risk is not None and isinstance(bert_risk, (int, float)) and 0.0 <= bert_risk <= 1.0:
+            # Combine BERT result with credibility check
             url_score = _source_credibility(source_url)
-            credibility_adjustment = max(0.0, 0.4 - url_score) * 0.2
+            credibility_adjustment = max(0.0, 0.4 - url_score) * 0.2  # Adjust based on source
             risk_score = min(0.95, max(0.05, bert_risk + credibility_adjustment))
         else:
+            # Fallback to heuristic analysis
             tokens = re.findall(r"[a-zA-Z']+", combined_text_lower)
             word_count = max(len(tokens), 1)
             capital_ratio = sum(1 for token in tokens if token.isupper()) / word_count
@@ -171,6 +175,7 @@ class DeepfakeDetector:
         """
         extension = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
         
+        # Try ML-based analysis if file content is available
         frame_scores = None
         regions = None
         audio_insights = None
@@ -191,6 +196,7 @@ class DeepfakeDetector:
                     except Exception as ve:
                         logger.warning(f"Video analysis failed, trying image analysis: {ve}")
                         from app.services.models import analyze_image_with_cnn
+                        # Fallback: analyze as image
                         try:
                             model_risk_score, frame_scores = analyze_image_with_cnn(file_content, filename)
                         except:
@@ -204,9 +210,11 @@ class DeepfakeDetector:
             except Exception as e:
                 logger.warning(f"ML model analysis failed: {e}, using heuristic fallback")
         
+        # If ML analysis succeeded, use it; otherwise use heuristics
         if model_risk_score is not None:
             risk_score = model_risk_score
         else:
+            # Fallback heuristic analysis
             base_risk = 0.22
             if mime_type.startswith("image/"):
                 base_risk = 0.28
@@ -225,25 +233,35 @@ class DeepfakeDetector:
             manipulation_penalty = 0.18 if extension in {"mp4", "wav", "mp3"} else 0.1
             risk_score = min(base_risk + size_penalty + format_penalty + manipulation_penalty, 0.97)
         
-        confidence = round(max(0.35, min(0.98, 0.15 + ((1.0 - risk_score) ** 0.9) * 0.85)), 3)
-        label = "Real" if risk_score >= 0.62 else "Fake"
+        # Confidence calibration:
+        # - Avoid always-high confidence when only heuristics are available.
+        # - Map risk_score -> confidence using a gentle, monotonic curve.
+        #   This ensures confidence moves meaningfully with manipulation risk.
+        # - Keep a sane lower bound, but do not force ~0.8.
+        confidence = round(max(0.35, min(0.98, 0.15 + (risk_score ** 0.9) * 0.85)), 3)
+        # Decision threshold: risk_score is an anomaly score.
+        # High risk means likely fake; low risk means likely real.
+        # Heuristic-only scoring is intentionally a bit more sensitive so
+        # suspicious uploads do not get under-called as Real.
+        decision_threshold = 0.55
+        label = "Fake" if risk_score >= decision_threshold else "Real"
 
-        
-        inverted_risk = 1.0 - risk_score
+        # Set defaults if not from ML analysis.
+        # Keep per-field scores correlated with the anomaly score.
         if not frame_scores:
-            frame_scores = [round(max(0.0, min(0.999, inverted_risk + offset)), 3) for offset in (-0.12, -0.04, 0.0, 0.04, 0.09)]
+            frame_scores = [round(max(0.0, min(0.999, risk_score + offset)), 3) for offset in (-0.12, -0.04, 0.0, 0.04, 0.09)]
 
         if not regions:
             regions = [
-                {"region": "face", "score": round(max(0.0, min(0.999, inverted_risk + 0.07)), 3)},
-                {"region": "mouth", "score": round(max(0.0, min(0.999, inverted_risk + 0.04)), 3)},
-                {"region": "background", "score": round(max(0.0, min(0.999, inverted_risk - 0.03)), 3)},
+                {"region": "face", "score": round(max(0.0, min(0.999, risk_score + 0.07)), 3)},
+                {"region": "mouth", "score": round(max(0.0, min(0.999, risk_score + 0.04)), 3)},
+                {"region": "background", "score": round(max(0.0, min(0.999, risk_score - 0.03)), 3)},
             ]
 
         if not audio_insights:
             audio_insights = {
-                "spectral_anomaly": round(max(0.0, min(0.999, inverted_risk + 0.05)), 3),
-                "voice_consistency": round(max(0.0, min(0.999, risk_score * 0.92)), 3),
+                "spectral_anomaly": round(max(0.0, min(0.999, risk_score + 0.05)), 3),
+                "voice_consistency": round(max(0.0, min(0.999, 1.0 - risk_score * 0.92)), 3),
                 "recommended_check": "Inspect harmonics and pause cadence",
             }
 
@@ -255,9 +273,9 @@ class DeepfakeDetector:
         ]
         
         summary = (
-            "The uploaded media does not show strong manipulation indicators."
-            if label == "Real"
-            else "Signals suggest artificial manipulation across frames or audio texture."
+            "Signals suggest artificial manipulation across frames or audio texture."
+            if label == "Fake"
+            else "The uploaded media does not show strong manipulation indicators."
         )
         
         return DetectorResult(

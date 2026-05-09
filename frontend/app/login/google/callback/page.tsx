@@ -22,8 +22,9 @@ function GoogleCallbackContent() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const oauthError = searchParams.get('error');
-    const encodedSession = searchParams.get('session');
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const oauthError = searchParams.get('error') ?? hashParams.get('error');
+    const encodedSession = searchParams.get('session') ?? hashParams.get('session');
 
     if (oauthError) {
       setError(oauthError);

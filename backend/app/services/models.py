@@ -5,6 +5,7 @@ Handles BERT for fake-news, CNN-style heuristics for deepfake, and audio spectro
 
 import io
 import logging
+import os
 from typing import Tuple
 
 import numpy as np
@@ -13,6 +14,25 @@ from PIL import Image
 logger = logging.getLogger(__name__)
 
 _models_cache = {}
+_MODEL_UNAVAILABLE = object()
+
+
+def _numpy_torch_compatibility_issue() -> bool:
+    """Detect known local incompatibility that causes slow/failing torch import paths."""
+    try:
+        import numpy as np
+
+        major = int(str(np.__version__).split(".", 1)[0])
+        # Torch wheels in this project currently fail with NumPy 2.x.
+        return major >= 2
+    except Exception:
+        return False
+
+
+def _bert_enabled() -> bool:
+    """Allow disabling BERT model load entirely in constrained environments."""
+    value = os.getenv("FAKE_NEWS_BERT_ENABLED", "true").strip().lower()
+    return value in {"1", "true", "yes", "on"}
 
 
 def _entropy_from_array(values: np.ndarray, bins: int = 256) -> float:
@@ -29,7 +49,21 @@ def _entropy_from_array(values: np.ndarray, bins: int = 256) -> float:
 def get_fake_news_model():
     """Load or return cached BERT-based fake-news classifier."""
     if "fake_news" in _models_cache:
-        return _models_cache["fake_news"]
+        cached = _models_cache["fake_news"]
+        return None if cached is _MODEL_UNAVAILABLE else cached
+
+    if not _bert_enabled():
+        logger.info("FAKE_NEWS_BERT_ENABLED is false; using heuristic fallback")
+        _models_cache["fake_news"] = _MODEL_UNAVAILABLE
+        return None
+
+    if _numpy_torch_compatibility_issue():
+        logger.warning(
+            "Skipping fake-news BERT load due NumPy/Torch compatibility issue; "
+            "using heuristic fallback"
+        )
+        _models_cache["fake_news"] = _MODEL_UNAVAILABLE
+        return None
 
     try:
         from transformers import pipeline
@@ -45,6 +79,8 @@ def get_fake_news_model():
         return model
     except Exception as e:
         logger.error(f"Failed to load fake-news model: {e}")
+        # Cache failure so subsequent scans do not repeatedly block on model loading.
+        _models_cache["fake_news"] = _MODEL_UNAVAILABLE
         return None
 
 
@@ -102,9 +138,11 @@ def analyze_text_with_bert(text: str) -> Tuple[float, str]:
         return None, "Unknown"
     except ImportError as e:
         logger.warning(f"transformers not available: {e}")
+        _models_cache["fake_news"] = _MODEL_UNAVAILABLE
         return None, "Unknown"
     except Exception as e:
         logger.warning(f"Error analyzing text with BERT: {e}")
+        _models_cache["fake_news"] = _MODEL_UNAVAILABLE
         return None, "Unknown"
 
 

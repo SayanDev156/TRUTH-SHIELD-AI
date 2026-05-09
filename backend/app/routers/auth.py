@@ -80,16 +80,16 @@ def google_callback(
     settings = get_settings()
     frontend_callback = f"{settings.frontend_url.rstrip('/')}/login/google/callback"
     if error:
-        return RedirectResponse(f"{frontend_callback}?error={quote(error)}")
+        return RedirectResponse(f"{frontend_callback}#error={quote(error)}")
     if not code or not state:
-        return RedirectResponse(f"{frontend_callback}?error=Missing%20Google%20authorization%20code")
+        return RedirectResponse(f"{frontend_callback}#error=Missing%20Google%20authorization%20code")
 
     try:
         state_payload = decode_token(state)
         if state_payload.get("sub") != "google_oauth_state":
             raise ValueError("Invalid Google OAuth state")
     except ValueError:
-        return RedirectResponse(f"{frontend_callback}?error=Invalid%20Google%20OAuth%20state")
+        return RedirectResponse(f"{frontend_callback}#error=Invalid%20Google%20OAuth%20state")
 
     try:
         token_payload = _post_form(
@@ -119,10 +119,10 @@ def google_callback(
         token = create_access_token(subject=user["email"], claims={"full_name": user["full_name"], "is_admin": user["is_admin"]})
         session = schemas.AuthResponse(access_token=token, user=schemas.UserPublic(**user))
         encoded_session = _base64url_json(session.model_dump(mode="json"))
-        return RedirectResponse(f"{frontend_callback}?session={encoded_session}")
+        return RedirectResponse(f"{frontend_callback}#session={encoded_session}")
     except (HTTPError, URLError, ValueError) as exc:
         message = urlencode({"error": str(exc)})
-        return RedirectResponse(f"{frontend_callback}?{message}")
+        return RedirectResponse(f"{frontend_callback}#{message}")
 
 
 def _post_form(url: str, payload: dict) -> dict:

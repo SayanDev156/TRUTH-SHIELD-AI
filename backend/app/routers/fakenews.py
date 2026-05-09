@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 import logging
+from time import perf_counter
 
 from app import schemas
 from app.core.dependencies import optional_current_user, get_store
@@ -16,12 +17,15 @@ def _current_user_email() -> str:
 
 @router.post("/analyze", response_model=schemas.ScanResult)
 def analyze_scan(payload: schemas.ScanRequest, current_user: dict | None = Depends(optional_current_user), repository: TruthShieldStore = Depends(get_store)):
+    start = perf_counter()
     try:
         detector = FakeNewsDetector()
         explainability = SimpleExplainability()
         credibility_checker = SourceCredibilityChecker()
 
+        detect_start = perf_counter()
         result = detector.analyze(payload.title, payload.text, payload.source_url, payload.language)
+        detect_elapsed = perf_counter() - detect_start
         logger.info(f"Detector result: {result}")
         
         result.explanation.extend(explainability.top_signals(payload.text))
@@ -36,6 +40,7 @@ def analyze_scan(payload: schemas.ScanRequest, current_user: dict | None = Depen
         result_dict = result.model_dump() if hasattr(result, 'model_dump') else result.as_dict()
         logger.info(f"Result dict: {result_dict}")
 
+        persist_start = perf_counter()
         repository.record_scan(
             user_email=(current_user["email"] if current_user else _current_user_email()),
             scan_type="fake_news",
@@ -46,6 +51,15 @@ def analyze_scan(payload: schemas.ScanRequest, current_user: dict | None = Depen
             confidence=result.confidence,
             label=result.label,
             metadata={"source_url": payload.source_url, "language": payload.language, "explanation": result.explanation},
+        )
+        persist_elapsed = perf_counter() - persist_start
+
+        total_elapsed = perf_counter() - start
+        logger.info(
+            "Fake-news analyze timing: detector=%.3fs, persist=%.3fs, total=%.3fs",
+            detect_elapsed,
+            persist_elapsed,
+            total_elapsed,
         )
 
         return result_dict

@@ -29,15 +29,25 @@ function loadNotif() {
   try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || 'null'); } catch { return null; }
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (v: boolean) => void;
+}) {
   return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 rounded-full transition-colors ${checked ? 'bg-neon-blue' : 'bg-white/20'}`}
-    >
+    <label className={`relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full transition-colors ${checked ? 'bg-neon-blue' : 'bg-white/20'}`} aria-label={label}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        className="sr-only"
+      />
       <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
-    </button>
+    </label>
   );
 }
 
@@ -159,6 +169,10 @@ export default function SettingsPage() {
   const inputCls = 'w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none transition focus:border-neon-blue/50 focus:bg-slate-950/70';
   const selectCls = 'w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm outline-none transition focus:border-neon-blue/50';
   const rowCls = 'flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3';
+  const emailInputId = 'settings-email';
+  const languageSelectId = 'settings-language';
+  const scanTypeSelectId = 'settings-scan-type';
+  const scanLanguageSelectId = 'settings-scan-language';
 
   return (
     <div className="space-y-6">
@@ -172,6 +186,7 @@ export default function SettingsPage() {
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
+            type="button"
             onClick={() => setTab(id)}
             className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm transition ${
               tab === id
@@ -216,13 +231,13 @@ export default function SettingsPage() {
               <input value={fullName} onChange={e => setFullName(e.target.value)} required minLength={2} className={inputCls} placeholder="Your full name" />
             </div>
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Email</label>
-              <input value={session?.user.email ?? ''} disabled className={`${inputCls} cursor-not-allowed opacity-50`} />
+              <label htmlFor={emailInputId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">Email</label>
+              <input id={emailInputId} value={session?.user.email ?? ''} disabled readOnly aria-label="Email address" title="Email address" className={`${inputCls} cursor-not-allowed opacity-50`} />
               <p className="mt-1 text-xs text-white/35">Email cannot be changed after registration.</p>
             </div>
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Language</label>
-              <select value={locale} onChange={e => setLocale(e.target.value)} className={selectCls}>
+              <label htmlFor={languageSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">Language</label>
+              <select id={languageSelectId} value={locale} onChange={e => setLocale(e.target.value)} className={selectCls} aria-label="Language">
                 <option value="en">English</option>
                 <option value="hi">Hindi</option>
                 <option value="bn">Bengali</option>
@@ -247,7 +262,12 @@ export default function SettingsPage() {
                 <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Current Password</label>
                 <div className="relative">
                   <input value={currentPw} onChange={e => setCurrentPw(e.target.value)} type={showCurrent ? 'text' : 'password'} required className={`${inputCls} pr-12`} placeholder="••••••••" />
-                  <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70">
+                  <button
+                    type="button"
+                    aria-label={showCurrent ? 'Hide current password' : 'Show current password'}
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70"
+                  >
                     {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -256,7 +276,12 @@ export default function SettingsPage() {
                 <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">New Password</label>
                 <div className="relative">
                   <input value={newPw} onChange={e => setNewPw(e.target.value)} type={showNew ? 'text' : 'password'} required minLength={8} className={`${inputCls} pr-12`} placeholder="Min. 8 characters" />
-                  <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70">
+                  <button
+                    type="button"
+                    aria-label={showNew ? 'Hide new password' : 'Show new password'}
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70"
+                  >
                     {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -299,15 +324,15 @@ export default function SettingsPage() {
           <h3 className="mt-2 text-xl font-semibold">Default scan settings</h3>
           <form onSubmit={handlePrefSave} className="mt-5 space-y-5">
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Default Scan Type</label>
-              <select value={prefs.defaultScanType} onChange={e => setPrefs(p => ({ ...p, defaultScanType: e.target.value }))} className={selectCls}>
+              <label htmlFor={scanTypeSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">Default Scan Type</label>
+              <select id={scanTypeSelectId} value={prefs.defaultScanType} onChange={e => setPrefs(p => ({ ...p, defaultScanType: e.target.value }))} className={selectCls} aria-label="Default scan type">
                 <option value="fake_news">Fake News Detection</option>
                 <option value="deepfake">Deepfake Detection</option>
               </select>
             </div>
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Default Language</label>
-              <select value={prefs.defaultLanguage} onChange={e => setPrefs(p => ({ ...p, defaultLanguage: e.target.value }))} className={selectCls}>
+              <label htmlFor={scanLanguageSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">Default Language</label>
+              <select id={scanLanguageSelectId} value={prefs.defaultLanguage} onChange={e => setPrefs(p => ({ ...p, defaultLanguage: e.target.value }))} className={selectCls} aria-label="Default language">
                 <option value="en">English</option>
                 <option value="hi">Hindi</option>
                 <option value="bn">Bengali</option>
@@ -319,6 +344,8 @@ export default function SettingsPage() {
                 type="range" min="10" max="90" step="5"
                 value={prefs.riskThreshold}
                 onChange={e => setPrefs(p => ({ ...p, riskThreshold: e.target.value }))}
+                aria-label="Risk alert threshold"
+                title="Risk alert threshold"
                 className="w-full accent-neon-blue"
               />
               <div className="mt-1 flex justify-between text-xs text-white/35">
@@ -331,14 +358,14 @@ export default function SettingsPage() {
                   <p className="text-sm">Auto-save scan history</p>
                   <p className="text-xs text-white/45">Save every scan result to your history automatically</p>
                 </div>
-                <Toggle checked={prefs.autoSaveHistory} onChange={v => setPrefs(p => ({ ...p, autoSaveHistory: v }))} />
+                <Toggle checked={prefs.autoSaveHistory} label="Auto-save scan history" onChange={v => setPrefs(p => ({ ...p, autoSaveHistory: v }))} />
               </div>
               <div className={rowCls}>
                 <div>
                   <p className="text-sm">Show AI explanations</p>
                   <p className="text-xs text-white/45">Display explainability notes with every scan result</p>
                 </div>
-                <Toggle checked={prefs.showExplanations} onChange={v => setPrefs(p => ({ ...p, showExplanations: v }))} />
+                <Toggle checked={prefs.showExplanations} label="Show AI explanations" onChange={v => setPrefs(p => ({ ...p, showExplanations: v }))} />
               </div>
             </div>
             <GradientButton type="submit">Save Preferences</GradientButton>
@@ -357,21 +384,21 @@ export default function SettingsPage() {
                 <p className="text-sm">High-risk scan alerts</p>
                 <p className="text-xs text-white/45">Get notified when a scan returns risk score above your threshold</p>
               </div>
-              <Toggle checked={notif.highRiskAlerts} onChange={v => setNotif(n => ({ ...n, highRiskAlerts: v }))} />
+              <Toggle checked={notif.highRiskAlerts} label="High-risk scan alerts" onChange={v => setNotif(n => ({ ...n, highRiskAlerts: v }))} />
             </div>
             <div className={rowCls}>
               <div>
                 <p className="text-sm">Scan complete notifications</p>
                 <p className="text-xs text-white/45">Show a banner when each scan finishes processing</p>
               </div>
-              <Toggle checked={notif.scanComplete} onChange={v => setNotif(n => ({ ...n, scanComplete: v }))} />
+              <Toggle checked={notif.scanComplete} label="Scan complete notifications" onChange={v => setNotif(n => ({ ...n, scanComplete: v }))} />
             </div>
             <div className={rowCls}>
               <div>
                 <p className="text-sm">Weekly digest</p>
                 <p className="text-xs text-white/45">Summary of your scan activity over the past 7 days</p>
               </div>
-              <Toggle checked={notif.weeklyDigest} onChange={v => setNotif(n => ({ ...n, weeklyDigest: v }))} />
+              <Toggle checked={notif.weeklyDigest} label="Weekly digest" onChange={v => setNotif(n => ({ ...n, weeklyDigest: v }))} />
             </div>
             {session?.user.is_admin && (
               <div className={rowCls}>
@@ -379,7 +406,7 @@ export default function SettingsPage() {
                   <p className="text-sm">Admin system alerts</p>
                   <p className="text-xs text-white/45">Notify on new user registrations and anomaly spikes</p>
                 </div>
-                <Toggle checked={notif.adminAlerts} onChange={v => setNotif(n => ({ ...n, adminAlerts: v }))} />
+                <Toggle checked={notif.adminAlerts} label="Admin system alerts" onChange={v => setNotif(n => ({ ...n, adminAlerts: v }))} />
               </div>
             )}
             <div className="pt-2">

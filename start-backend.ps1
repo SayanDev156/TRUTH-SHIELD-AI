@@ -9,4 +9,4 @@ if (-not (Test-Path $python)) {
 }
 
 Set-Location $backend
-& $python -m uvicorn app.main:app --reload --port 8002
+& $python -m uvicorn app.main:app --reload --port 8003
