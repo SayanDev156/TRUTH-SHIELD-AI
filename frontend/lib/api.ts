@@ -1,7 +1,7 @@
 import { AuthSession, HistoryItem, ScanResult } from './types';
 import { getAuthToken } from './auth';
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003';
+const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://truth-shield-ai.onrender.com';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = typeof window !== 'undefined' ? getAuthToken() : null;

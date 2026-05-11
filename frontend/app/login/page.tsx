@@ -10,8 +10,7 @@ import { User, Crown } from 'lucide-react';
 import { TruthShieldLogo } from '@/components/logo';
 
 export default function LoginPage() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003';
-
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://truth-shield-ai.onrender.com';
 
   const router = useRouter();
   const [role, setRole] = useState<'user' | 'admin'>('user');
