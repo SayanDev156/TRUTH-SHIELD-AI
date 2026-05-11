@@ -4,8 +4,12 @@ import { useEffect, useState } from 'react';
 import { getHistory } from '@/lib/api';
 import { HistoryItem } from '@/lib/types';
 import { GlassCard, GradientButton, Pill } from '@/components/ui';
+import { useAppLocale } from '@/lib/locale';
+import { useDashboardCopy } from '@/lib/dashboard-copy';
 
 export default function ReportsPage() {
+  const copy = useDashboardCopy();
+  const { formatDateTime } = useAppLocale();
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -38,7 +42,7 @@ export default function ReportsPage() {
   const reportItems = filtered.filter((i) => selected.has(i.id));
 
   const handleGeneratePDF = () => {
-    if (!reportItems.length) { alert('Select at least one scan to generate a report.'); return; }
+    if (!reportItems.length) { alert(copy.reports.selectAtLeastOne); return; }
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
     const rows = reportItems
@@ -51,7 +55,7 @@ export default function ReportsPage() {
           <td>${Math.round(item.confidence * 100)}%</td>
           <td>${Math.round(item.risk_score * 100)}%</td>
           <td>${item.summary}</td>
-          <td>${new Date(item.created_at).toLocaleString()}</td>
+          <td>${formatDateTime(item.created_at)}</td>
         </tr>`
       )
       .join('');
@@ -71,7 +75,7 @@ export default function ReportsPage() {
         .footer { margin-top: 32px; font-size: 11px; color: #999; }
       </style></head><body>
       <h1>TruthShield AI – Evidence Report</h1>
-      <p class="sub">Generated: ${new Date().toLocaleString()} &nbsp;|&nbsp; Scans included: ${reportItems.length}</p>
+      <p class="sub">${copy.reports.generated}: ${formatDateTime(new Date())} &nbsp;|&nbsp; ${copy.reports.scansIncluded}: ${reportItems.length}</p>
       <table>
         <thead><tr><th>Title</th><th>Type</th><th>Verdict</th><th>Confidence</th><th>Risk</th><th>Summary</th><th>Date</th></tr></thead>
         <tbody>${rows}</tbody>
@@ -105,19 +109,19 @@ export default function ReportsPage() {
       <GlassCard>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-white/45">Reports</p>
-            <h2 className="mt-2 text-2xl font-semibold">Export scans as PDF</h2>
+            <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.reports.title}</p>
+            <h2 className="mt-2 text-2xl font-semibold">{copy.reports.subtitle}</h2>
             <p className="mt-1 text-sm text-white/60">
-              {selected.size > 0 ? `${selected.size} scan${selected.size > 1 ? 's' : ''} selected` : 'Select scans below to include in the report.'}
+              {selected.size > 0 ? copy.reports.selectedCount(selected.size) : 'Select scans below to include in the report.'}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <GradientButton onClick={handleGeneratePDF}>Generate PDF</GradientButton>
+            <GradientButton onClick={handleGeneratePDF}>{copy.reports.generatePdf}</GradientButton>
             <button
               onClick={handleShareBundle}
               className="rounded-full border border-white/12 px-5 py-3 text-sm text-white/75 transition hover:bg-white/10"
             >
-              {copied ? '✓ Copied to clipboard' : 'Share evidence bundle'}
+              {copied ? copy.reports.copied : copy.reports.shareBundle}
             </button>
           </div>
         </div>
@@ -132,18 +136,18 @@ export default function ReportsPage() {
               filter === type ? 'border-neon-blue bg-neon-blue/10 text-white' : 'border-white/12 text-white/60 hover:bg-white/5'
             }`}
           >
-            {type === '' ? 'All' : type === 'fake_news' ? 'Fake News' : 'Deepfake'}
+            {type === '' ? copy.reports.all : type === 'fake_news' ? copy.reports.fakeNews : copy.reports.deepfake}
           </button>
         ))}
         {filtered.length > 0 && (
           <button onClick={toggleAll} className="ml-auto text-xs text-white/50 hover:text-white/80 transition">
-            {selected.size === filtered.length ? 'Deselect all' : 'Select all'}
+            {selected.size === filtered.length ? copy.reports.deselectAll : copy.reports.selectAll}
           </button>
         )}
       </div>
 
-      {loading && <GlassCard>Loading scans…</GlassCard>}
-      {!loading && !filtered.length && <GlassCard>No scans found.</GlassCard>}
+      {loading && <GlassCard>{copy.reports.loading}</GlassCard>}
+      {!loading && !filtered.length && <GlassCard>{copy.reports.noScans}</GlassCard>}
       <div className="grid gap-3">
         {filtered.map((item) => {
           const isSelected = selected.has(item.id);
@@ -174,7 +178,7 @@ export default function ReportsPage() {
                 <div className="shrink-0 text-right text-sm text-white/55">
                   <div>Confidence: {Math.round(item.confidence * 100)}%</div>
                   <div>Risk: {Math.round(item.risk_score * 100)}%</div>
-                  <div className="text-xs">{new Date(item.created_at).toLocaleString()}</div>
+                  <div className="text-xs">{formatDateTime(item.created_at)}</div>
                 </div>
               </div>
             </button>
@@ -183,13 +187,9 @@ export default function ReportsPage() {
       </div>
 
       <GlassCard>
-        <p className="text-xs uppercase tracking-[0.28em] text-white/45">Included in report</p>
+        <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.reports.includedHeading}</p>
         <ul className="mt-4 space-y-2 text-sm text-white/65">
-          <li>• Scan metadata and source URL</li>
-          <li>• Flagged phrases and media anomalies</li>
-          <li>• Model confidence and risk scores</li>
-          <li>• Verdict label and audit trail</li>
-          <li>• Recommended next verification steps</li>
+          {copy.reports.includedItems.map((item) => <li key={item}>• {item}</li>)}
         </ul>
       </GlassCard>
     </div>

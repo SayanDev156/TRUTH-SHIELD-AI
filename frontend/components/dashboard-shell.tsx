@@ -8,6 +8,7 @@ import { Activity, ScanFace, History, BarChart3, Settings, LayoutDashboard, User
 import { TruthShieldLogo } from '@/components/logo';
 import { getAuthSession, clearAuthSession } from '@/lib/auth';
 import { AuthSession } from '@/lib/types';
+import { useDashboardCopy } from '@/lib/dashboard-copy';
 
 const userNavItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -29,6 +30,7 @@ const adminNavItems = [
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
+  const copy = useDashboardCopy();
   const pathname = usePathname();
   const router = useRouter();
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -38,7 +40,27 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     setSession(getAuthSession());
   }, []);
 
-  const navItems = session?.user?.is_admin ? adminNavItems : userNavItems;
+  const navItems = (session?.user?.is_admin ? adminNavItems : userNavItems).map((item) => ({
+    ...item,
+    label:
+      item.href === '/dashboard'
+        ? copy.shell.overview
+        : item.href === '/dashboard/fake-news'
+          ? copy.shell.fakeNewsDetector
+          : item.href === '/dashboard/deepfake'
+            ? copy.shell.deepfakeDetector
+            : item.href === '/dashboard/history'
+              ? session?.user?.is_admin
+                ? copy.shell.allScans
+                : copy.shell.scanHistory
+              : item.href === '/dashboard/reports'
+                ? copy.shell.reports
+                : item.href === '/dashboard/settings'
+                  ? copy.shell.settings
+                  : item.href === '/dashboard/admin'
+                    ? copy.shell.adminPanel
+                    : item.label,
+  }));
 
   const handleLogout = () => {
     clearAuthSession();
@@ -55,7 +77,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <TruthShieldLogo size={44} />
             <div>
               <p className="font-display text-xl font-semibold">TruthShield AI</p>
-              <p className="text-xs tracking-[0.24em] text-white/45">Verify before you amplify</p>
+              <p className="text-xs tracking-[0.24em] text-white/45">{copy.shell.brandTagline}</p>
             </div>
           </Link>
 
@@ -88,15 +110,15 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   <p className="truncate text-sm font-medium">{session.user.full_name}</p>
                   <p className="truncate text-xs text-white/50">
                     {session.user.is_admin ? (
-                      <span className="text-neon-purple">Admin</span>
+                      <span className="text-neon-purple">{copy.shell.admin}</span>
                     ) : (
-                      <span className="text-white/50">User</span>
+                      <span className="text-white/50">{copy.shell.user}</span>
                     )}
                   </p>
                 </div>
                 <button
                   onClick={handleLogout}
-                  title="Logout"
+                  title={copy.shell.logout}
                   className="shrink-0 rounded-xl p-2 text-white/40 transition hover:bg-white/10 hover:text-white"
                 >
                   <LogOut className="h-4 w-4" />
@@ -112,7 +134,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <TruthShieldLogo size={40} />
               <div>
                 <p className="text-xs uppercase tracking-[0.28em] text-white/45">TruthShield AI</p>
-                <h1 className="font-display text-xl font-semibold text-white">Fake News + Deepfake Detector</h1>
+                <h1 className="font-display text-xl font-semibold text-white">{copy.shell.fakeNewsDetector} + {copy.shell.deepfakeDetector}</h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -127,7 +149,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                     </div>
                     <span className="hidden md:block">{session.user.full_name}</span>
                     {session.user.is_admin && (
-                      <span className="hidden rounded-full bg-neon-purple/20 px-2 py-0.5 text-xs text-neon-purple md:block">Admin</span>
+                      <span className="hidden rounded-full bg-neon-purple/20 px-2 py-0.5 text-xs text-neon-purple md:block">{copy.shell.admin}</span>
                     )}
                     <ChevronDown className="h-3 w-3 text-white/40" />
                   </button>
@@ -144,7 +166,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                           className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10"
                         >
                           <LogOut className="h-4 w-4" />
-                          Sign out
+                          {copy.shell.signOut}
                         </button>
                       </div>,
                       document.body
@@ -152,7 +174,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 </div>
               ) : (
                 <Link href="/login" className="rounded-full border border-white/12 px-4 py-2 text-sm text-white/75 transition hover:bg-white/8">
-                  Login
+                  {copy.shell.login}
                 </Link>
               )}
             </div>

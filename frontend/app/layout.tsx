@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Manrope, Space_Grotesk } from 'next/font/google';
+import { AppProviders } from '@/components/app-providers';
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' });
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div key={i} className="ts-particle" />
           ))}
         </div>
-        {children}
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

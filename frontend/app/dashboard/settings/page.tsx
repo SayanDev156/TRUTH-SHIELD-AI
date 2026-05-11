@@ -4,15 +4,17 @@ import { useEffect, useState } from 'react';
 import { GlassCard, GradientButton } from '@/components/ui';
 import { updateProfile, changePassword } from '@/lib/api';
 import { getAuthSession, setAuthSession, clearAuthSession } from '@/lib/auth';
+import { useAppLocale } from '@/lib/locale';
+import { useDashboardCopy } from '@/lib/dashboard-copy';
 import { useRouter } from 'next/navigation';
 import { User, Lock, ScanSearch, Bell, Trash2, Check, Eye, EyeOff } from 'lucide-react';
 
 const TABS = [
-  { id: 'profile', label: 'Profile', icon: User },
-  { id: 'security', label: 'Security', icon: Lock },
-  { id: 'scan', label: 'Scan Preferences', icon: ScanSearch },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'danger', label: 'Danger Zone', icon: Trash2 },
+  { id: 'profile', icon: User },
+  { id: 'security', icon: Lock },
+  { id: 'scan', icon: ScanSearch },
+  { id: 'notifications', icon: Bell },
+  { id: 'danger', icon: Trash2 },
 ] as const;
 
 type Tab = (typeof TABS)[number]['id'];
@@ -62,6 +64,8 @@ function SaveBanner({ show }: { show: boolean }) {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const copy = useDashboardCopy();
+  const { locale: appLocale, setLocale: setAppLocale, formatDate } = useAppLocale();
   const [tab, setTab] = useState<Tab>('profile');
   const session = typeof window !== 'undefined' ? getAuthSession() : null;
 
@@ -117,6 +121,7 @@ export default function SettingsPage() {
       if (session) {
         setAuthSession({ ...session, user: { ...session.user, full_name: updated.full_name, locale: updated.locale } });
       }
+      setAppLocale(updated.locale);
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 3000);
     } catch (err) {
@@ -177,9 +182,9 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <GlassCard>
-        <p className="text-xs uppercase tracking-[0.28em] text-white/45">Settings</p>
-        <h2 className="mt-2 text-2xl font-semibold">Account &amp; Preferences</h2>
-        <p className="mt-1 text-sm text-white/55">Manage your profile, security, scan defaults, and notifications.</p>
+        <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.settings.title}</p>
+        <h2 className="mt-2 text-2xl font-semibold">{copy.settings.settingsHeader}</h2>
+        <p className="mt-1 text-sm text-white/55">{copy.settings.manageSubtitle}</p>
       </GlassCard>
 
       <div className="flex flex-wrap gap-2">
@@ -197,54 +202,64 @@ export default function SettingsPage() {
             }`}
           >
             <Icon className="h-4 w-4" />
-            {label}
+            {id === 'profile' ? copy.settings.profile : id === 'security' ? copy.settings.security : id === 'scan' ? copy.settings.scanPreferences : id === 'notifications' ? copy.settings.notifications : copy.settings.dangerZone}
           </button>
         ))}
       </div>
 
       {tab === 'profile' && (
         <GlassCard>
-          <p className="text-xs uppercase tracking-[0.28em] text-white/45">Profile</p>
-          <h3 className="mt-2 text-xl font-semibold">Personal information</h3>
+          <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.settings.profile}</p>
+          <h3 className="mt-2 text-xl font-semibold">{copy.settings.personalInformation}</h3>
 
           <div className="mt-5 flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-neon-blue to-neon-purple text-2xl font-bold text-slate-950">
               {(fullName || 'U').charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium">{session?.user.full_name ?? 'User'}</p>
+              <p className="text-sm font-medium">{session?.user.full_name ?? copy.shell.user}</p>
               <p className="text-xs text-white/50">{session?.user.email}</p>
               <p className="mt-1 text-xs text-white/40">
                 {session?.user.is_admin ? (
-                  <span className="text-neon-purple">Admin account</span>
+                  <span className="text-neon-purple">{copy.settings.adminAccount}</span>
                 ) : (
-                  <span>Standard account</span>
+                  <span>{copy.settings.standardAccount}</span>
                 )}
-                {' · '}Member since {session?.user.created_at ? new Date(session.user.created_at).toLocaleDateString() : '—'}
+                {' · '}{copy.settings.memberSince} {session?.user.created_at ? formatDate(session.user.created_at) : '—'}
               </p>
             </div>
           </div>
 
           <form onSubmit={handleProfileSave} className="mt-6 space-y-4">
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Full Name</label>
-              <input value={fullName} onChange={e => setFullName(e.target.value)} required minLength={2} className={inputCls} placeholder="Your full name" />
+              <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.fullNameLabel}</label>
+              <input value={fullName} onChange={e => setFullName(e.target.value)} required minLength={2} className={inputCls} placeholder={copy.settings.fullNameLabel} />
             </div>
             <div>
-              <label htmlFor={emailInputId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">Email</label>
+              <label htmlFor={emailInputId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.emailLabel}</label>
               <input id={emailInputId} value={session?.user.email ?? ''} disabled readOnly aria-label="Email address" title="Email address" className={`${inputCls} cursor-not-allowed opacity-50`} />
-              <p className="mt-1 text-xs text-white/35">Email cannot be changed after registration.</p>
+              <p className="mt-1 text-xs text-white/35">{copy.settings.emailLocked}</p>
             </div>
             <div>
-              <label htmlFor={languageSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">Language</label>
-              <select id={languageSelectId} value={locale} onChange={e => setLocale(e.target.value)} className={selectCls} aria-label="Language">
+              <label htmlFor={languageSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.languageLabel}</label>
+              <select
+                id={languageSelectId}
+                value={locale}
+                onChange={(e) => {
+                  const nextLocale = e.target.value;
+                  setLocale(nextLocale);
+                  setAppLocale(nextLocale);
+                }}
+                className={selectCls}
+                aria-label="Language"
+              >
                 <option value="en">English</option>
                 <option value="hi">Hindi</option>
                 <option value="bn">Bengali</option>
               </select>
             </div>
             <div className="flex items-center gap-3">
-              <GradientButton type="submit">{profileSaving ? 'Saving…' : 'Save Profile'}</GradientButton>
+              <GradientButton type="submit">{profileSaving ? copy.settings.saving : copy.settings.saveProfile}</GradientButton>
             </div>
             <SaveBanner show={profileSaved} />
             {profileError && <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{profileError}</p>}
@@ -255,11 +270,11 @@ export default function SettingsPage() {
       {tab === 'security' && (
         <div className="space-y-5">
           <GlassCard>
-            <p className="text-xs uppercase tracking-[0.28em] text-white/45">Security</p>
-            <h3 className="mt-2 text-xl font-semibold">Change password</h3>
+            <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.settings.security}</p>
+            <h3 className="mt-2 text-xl font-semibold">{copy.settings.updatePassword}</h3>
             <form onSubmit={handlePasswordSave} className="mt-5 space-y-4">
               <div>
-                <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Current Password</label>
+                <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.currentPassword}</label>
                 <div className="relative">
                   <input value={currentPw} onChange={e => setCurrentPw(e.target.value)} type={showCurrent ? 'text' : 'password'} required className={`${inputCls} pr-12`} placeholder="••••••••" />
                   <button
@@ -273,7 +288,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">New Password</label>
+                <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.newPassword}</label>
                 <div className="relative">
                   <input value={newPw} onChange={e => setNewPw(e.target.value)} type={showNew ? 'text' : 'password'} required minLength={8} className={`${inputCls} pr-12`} placeholder="Min. 8 characters" />
                   <button
@@ -295,18 +310,18 @@ export default function SettingsPage() {
                 )}
               </div>
               <div>
-                <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Confirm New Password</label>
+                <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.confirmPassword}</label>
                 <input value={confirmPw} onChange={e => setConfirmPw(e.target.value)} type="password" required className={inputCls} placeholder="Repeat new password" />
               </div>
-              <GradientButton type="submit">{pwSaving ? 'Updating…' : 'Update Password'}</GradientButton>
+              <GradientButton type="submit">{pwSaving ? copy.settings.updating : copy.settings.updatePassword}</GradientButton>
               <SaveBanner show={pwSaved} />
               {pwError && <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{pwError}</p>}
             </form>
           </GlassCard>
 
           <GlassCard>
-            <p className="text-xs uppercase tracking-[0.28em] text-white/45">System</p>
-            <h3 className="mt-2 text-xl font-semibold">Authentication info</h3>
+            <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.settings.systemInfo}</p>
+            <h3 className="mt-2 text-xl font-semibold">{copy.settings.systemInfo}</h3>
             <div className="mt-4 space-y-3 text-sm">
               <div className={rowCls}><span className="text-white/60">JWT session expiry</span><span className="font-medium">120 minutes</span></div>
               <div className={rowCls}><span className="text-white/60">Rate limiting</span><span className="font-medium text-green-400">Enabled</span></div>
@@ -320,18 +335,18 @@ export default function SettingsPage() {
 
       {tab === 'scan' && (
         <GlassCard>
-          <p className="text-xs uppercase tracking-[0.28em] text-white/45">Scan Preferences</p>
-          <h3 className="mt-2 text-xl font-semibold">Default scan settings</h3>
+          <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.settings.scanPreferences}</p>
+          <h3 className="mt-2 text-xl font-semibold">{copy.settings.scanPreferences}</h3>
           <form onSubmit={handlePrefSave} className="mt-5 space-y-5">
             <div>
-              <label htmlFor={scanTypeSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">Default Scan Type</label>
+              <label htmlFor={scanTypeSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.defaultScanType}</label>
               <select id={scanTypeSelectId} value={prefs.defaultScanType} onChange={e => setPrefs(p => ({ ...p, defaultScanType: e.target.value }))} className={selectCls} aria-label="Default scan type">
                 <option value="fake_news">Fake News Detection</option>
                 <option value="deepfake">Deepfake Detection</option>
               </select>
             </div>
             <div>
-              <label htmlFor={scanLanguageSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">Default Language</label>
+              <label htmlFor={scanLanguageSelectId} className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.defaultLanguage}</label>
               <select id={scanLanguageSelectId} value={prefs.defaultLanguage} onChange={e => setPrefs(p => ({ ...p, defaultLanguage: e.target.value }))} className={selectCls} aria-label="Default language">
                 <option value="en">English</option>
                 <option value="hi">Hindi</option>
@@ -339,7 +354,7 @@ export default function SettingsPage() {
               </select>
             </div>
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">Risk Alert Threshold: {prefs.riskThreshold}%</label>
+              <label className="mb-2 block text-xs uppercase tracking-wider text-white/50">{copy.settings.riskThreshold}: {prefs.riskThreshold}%</label>
               <input
                 type="range" min="10" max="90" step="5"
                 value={prefs.riskThreshold}
@@ -355,20 +370,20 @@ export default function SettingsPage() {
             <div className="space-y-3">
               <div className={rowCls}>
                 <div>
-                  <p className="text-sm">Auto-save scan history</p>
-                  <p className="text-xs text-white/45">Save every scan result to your history automatically</p>
+                  <p className="text-sm">{copy.settings.autoSaveHistory}</p>
+                  <p className="text-xs text-white/45">{copy.settings.autoSaveHistory}</p>
                 </div>
-                <Toggle checked={prefs.autoSaveHistory} label="Auto-save scan history" onChange={v => setPrefs(p => ({ ...p, autoSaveHistory: v }))} />
+                <Toggle checked={prefs.autoSaveHistory} label={copy.settings.autoSaveHistory} onChange={v => setPrefs(p => ({ ...p, autoSaveHistory: v }))} />
               </div>
               <div className={rowCls}>
                 <div>
-                  <p className="text-sm">Show AI explanations</p>
-                  <p className="text-xs text-white/45">Display explainability notes with every scan result</p>
+                  <p className="text-sm">{copy.settings.showAiExplanations}</p>
+                  <p className="text-xs text-white/45">{copy.settings.showAiExplanations}</p>
                 </div>
-                <Toggle checked={prefs.showExplanations} label="Show AI explanations" onChange={v => setPrefs(p => ({ ...p, showExplanations: v }))} />
+                <Toggle checked={prefs.showExplanations} label={copy.settings.showAiExplanations} onChange={v => setPrefs(p => ({ ...p, showExplanations: v }))} />
               </div>
             </div>
-            <GradientButton type="submit">Save Preferences</GradientButton>
+            <GradientButton type="submit">{copy.settings.savePreferences}</GradientButton>
             <SaveBanner show={prefSaved} />
           </form>
         </GlassCard>
@@ -376,41 +391,41 @@ export default function SettingsPage() {
 
       {tab === 'notifications' && (
         <GlassCard>
-          <p className="text-xs uppercase tracking-[0.28em] text-white/45">Notifications</p>
-          <h3 className="mt-2 text-xl font-semibold">Alert preferences</h3>
+          <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.settings.notifications}</p>
+          <h3 className="mt-2 text-xl font-semibold">{copy.settings.alertPreferences}</h3>
           <form onSubmit={handleNotifSave} className="mt-5 space-y-3">
             <div className={rowCls}>
               <div>
-                <p className="text-sm">High-risk scan alerts</p>
+                <p className="text-sm">{copy.settings.highRiskAlerts}</p>
                 <p className="text-xs text-white/45">Get notified when a scan returns risk score above your threshold</p>
               </div>
-              <Toggle checked={notif.highRiskAlerts} label="High-risk scan alerts" onChange={v => setNotif(n => ({ ...n, highRiskAlerts: v }))} />
+              <Toggle checked={notif.highRiskAlerts} label={copy.settings.highRiskAlerts} onChange={v => setNotif(n => ({ ...n, highRiskAlerts: v }))} />
             </div>
             <div className={rowCls}>
               <div>
-                <p className="text-sm">Scan complete notifications</p>
+                <p className="text-sm">{copy.settings.scanCompleteNotifications}</p>
                 <p className="text-xs text-white/45">Show a banner when each scan finishes processing</p>
               </div>
-              <Toggle checked={notif.scanComplete} label="Scan complete notifications" onChange={v => setNotif(n => ({ ...n, scanComplete: v }))} />
+              <Toggle checked={notif.scanComplete} label={copy.settings.scanCompleteNotifications} onChange={v => setNotif(n => ({ ...n, scanComplete: v }))} />
             </div>
             <div className={rowCls}>
               <div>
-                <p className="text-sm">Weekly digest</p>
+                <p className="text-sm">{copy.settings.weeklyDigest}</p>
                 <p className="text-xs text-white/45">Summary of your scan activity over the past 7 days</p>
               </div>
-              <Toggle checked={notif.weeklyDigest} label="Weekly digest" onChange={v => setNotif(n => ({ ...n, weeklyDigest: v }))} />
+              <Toggle checked={notif.weeklyDigest} label={copy.settings.weeklyDigest} onChange={v => setNotif(n => ({ ...n, weeklyDigest: v }))} />
             </div>
             {session?.user.is_admin && (
               <div className={rowCls}>
                 <div>
-                  <p className="text-sm">Admin system alerts</p>
+                  <p className="text-sm">{copy.settings.adminSystemAlerts}</p>
                   <p className="text-xs text-white/45">Notify on new user registrations and anomaly spikes</p>
                 </div>
-                <Toggle checked={notif.adminAlerts} label="Admin system alerts" onChange={v => setNotif(n => ({ ...n, adminAlerts: v }))} />
+                <Toggle checked={notif.adminAlerts} label={copy.settings.adminSystemAlerts} onChange={v => setNotif(n => ({ ...n, adminAlerts: v }))} />
               </div>
             )}
             <div className="pt-2">
-              <GradientButton type="submit">Save Notifications</GradientButton>
+              <GradientButton type="submit">{copy.settings.saveNotifications}</GradientButton>
             </div>
             <SaveBanner show={notifSaved} />
           </form>
@@ -420,15 +435,15 @@ export default function SettingsPage() {
       {tab === 'danger' && (
         <div className="space-y-5">
           <GlassCard>
-            <p className="text-xs uppercase tracking-[0.28em] text-red-400/70">Danger Zone</p>
-            <h3 className="mt-2 text-xl font-semibold">Destructive actions</h3>
+            <p className="text-xs uppercase tracking-[0.28em] text-red-400/70">{copy.settings.dangerZone}</p>
+            <h3 className="mt-2 text-xl font-semibold">{copy.settings.destructiveActions}</h3>
             <p className="mt-2 text-sm text-white/55">These actions are irreversible. Please proceed with caution.</p>
 
             <div className="mt-6 space-y-4">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium">Clear scan history</p>
+                    <p className="text-sm font-medium">{copy.settings.clearScanHistory}</p>
                     <p className="mt-1 text-xs text-white/45">Remove all your scan records from the local session. MongoDB records are retained.</p>
                   </div>
                   <button
@@ -436,7 +451,7 @@ export default function SettingsPage() {
                     onClick={() => { if (confirm('Clear local scan history cache?')) { localStorage.removeItem('truthshield.history'); alert('Local cache cleared.'); } }}
                     className="shrink-0 rounded-2xl border border-white/15 px-4 py-2 text-sm text-white/70 transition hover:bg-white/5"
                   >
-                    Clear cache
+                    {copy.settings.clearCache}
                   </button>
                 </div>
               </div>
@@ -444,7 +459,7 @@ export default function SettingsPage() {
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium">Reset preferences</p>
+                    <p className="text-sm font-medium">{copy.settings.resetPreferences}</p>
                     <p className="mt-1 text-xs text-white/45">Restore all scan preferences and notification settings to defaults.</p>
                   </div>
                   <button
@@ -458,7 +473,7 @@ export default function SettingsPage() {
                     }}
                     className="shrink-0 rounded-2xl border border-white/15 px-4 py-2 text-sm text-white/70 transition hover:bg-white/5"
                   >
-                    Reset
+                    {copy.settings.reset}
                   </button>
                 </div>
               </div>
@@ -466,7 +481,7 @@ export default function SettingsPage() {
               <div className="rounded-2xl border border-red-500/25 bg-red-500/5 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-red-400">Sign out of all sessions</p>
+                    <p className="text-sm font-medium text-red-400">{copy.settings.signOutAllSessions}</p>
                     <p className="mt-1 text-xs text-white/45">Clear your JWT token and all local data, then redirect to login.</p>
                   </div>
                   <button
@@ -474,7 +489,7 @@ export default function SettingsPage() {
                     onClick={handleDeleteAccount}
                     className="shrink-0 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-400 transition hover:bg-red-500/20"
                   >
-                    Sign out
+                    {copy.settings.signOut}
                   </button>
                 </div>
               </div>
@@ -482,12 +497,12 @@ export default function SettingsPage() {
           </GlassCard>
 
           <GlassCard>
-            <p className="text-xs uppercase tracking-[0.28em] text-white/45">Session info</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-white/45">{copy.settings.sessionInfo}</p>
             <div className="mt-4 space-y-3 text-sm">
-              <div className={rowCls}><span className="text-white/60">Account ID</span><span className="font-mono text-xs text-white/70">{session?.user.id ?? '—'}</span></div>
-              <div className={rowCls}><span className="text-white/60">Role</span><span className={session?.user.is_admin ? 'text-neon-purple' : 'text-white/80'}>{session?.user.is_admin ? 'Admin' : 'User'}</span></div>
-              <div className={rowCls}><span className="text-white/60">Locale</span><span>{session?.user.locale ?? '—'}</span></div>
-              <div className={rowCls}><span className="text-white/60">Token</span><span className="font-mono text-xs text-white/40">{session?.access_token ? session.access_token.slice(0, 24) + '…' : '—'}</span></div>
+              <div className={rowCls}><span className="text-white/60">{copy.settings.accountId}</span><span className="font-mono text-xs text-white/70">{session?.user.id ?? '—'}</span></div>
+              <div className={rowCls}><span className="text-white/60">{copy.settings.role}</span><span className={session?.user.is_admin ? 'text-neon-purple' : 'text-white/80'}>{session?.user.is_admin ? copy.settings.adminAccount : copy.settings.standardAccount}</span></div>
+              <div className={rowCls}><span className="text-white/60">{copy.settings.locale}</span><span>{appLocale}</span></div>
+              <div className={rowCls}><span className="text-white/60">{copy.settings.token}</span><span className="font-mono text-xs text-white/40">{session?.access_token ? session.access_token.slice(0, 24) + '…' : '—'}</span></div>
             </div>
           </GlassCard>
         </div>

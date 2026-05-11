@@ -2,6 +2,7 @@
 
 import { BarChart, Bar, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { GlassCard } from './ui';
+import { useDashboardCopy } from '@/lib/dashboard-copy';
 
 const overviewData = [
   { name: 'Fake News', value: 72 },
@@ -26,12 +27,13 @@ const activityData = [
 ];
 
 export function OverviewCharts() {
+  const copy = useDashboardCopy();
   return (
     <div className="grid gap-6 xl:grid-cols-3">
       <GlassCard className="xl:col-span-2">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Weekly scan volume</h3>
-          <span className="text-xs text-white/45">Live demo dataset</span>
+          <h3 className="text-lg font-semibold">{copy.overview.weeklyScanVolume}</h3>
+          <span className="text-xs text-white/45">{copy.overview.liveDemoDataset}</span>
         </div>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
@@ -47,8 +49,8 @@ export function OverviewCharts() {
       </GlassCard>
       <GlassCard>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Verdict split</h3>
-          <span className="text-xs text-white/45">30-day snapshot</span>
+          <h3 className="text-lg font-semibold">{copy.overview.verdictSplit}</h3>
+          <span className="text-xs text-white/45">{copy.overview.snapshot30Days}</span>
         </div>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
@@ -69,11 +71,12 @@ export function OverviewCharts() {
 }
 
 export function AccuracyBars() {
+  const copy = useDashboardCopy();
   return (
     <GlassCard>
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Model accuracy</h3>
-        <span className="text-xs text-white/45">Benchmark snapshot</span>
+        <h3 className="text-lg font-semibold">{copy.overview.modelAccuracy}</h3>
+        <span className="text-xs text-white/45">{copy.overview.benchmarkSnapshot}</span>
       </div>
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
