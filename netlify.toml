@@ -1,7 +1,7 @@
 [build]
-  base = "frontend"
+  base = "."
   command = "npm run build"
-
+  publish = "frontend"
 [build.environment]
   NEXT_PUBLIC_API_URL = "https://truth-shield-ai.onrender.com"
 
