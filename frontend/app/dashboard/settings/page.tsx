@@ -188,7 +188,6 @@ export default function SettingsPage() {
       </GlassCard>
 
       <div className="flex flex-wrap gap-2">
-        {TABS.map(({ id, label, icon: Icon }) => (
         {TABS.map(({ id, icon: Icon }) => (
           <button
             key={id}
