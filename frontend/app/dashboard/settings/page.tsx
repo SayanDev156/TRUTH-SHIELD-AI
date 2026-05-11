@@ -189,6 +189,7 @@ export default function SettingsPage() {
 
       <div className="flex flex-wrap gap-2">
         {TABS.map(({ id, label, icon: Icon }) => (
+        {TABS.map(({ id, icon: Icon }) => (
           <button
             key={id}
             type="button"
